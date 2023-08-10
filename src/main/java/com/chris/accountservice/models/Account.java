@@ -3,6 +3,7 @@ package com.chris.accountservice.models;
 import com.chris.accountservice.enums.CurrencyCode;
 
 import javax.persistence.*;
+import javax.validation.constraints.NotNull;
 import java.time.LocalDate;
 import java.util.Objects;
 
@@ -15,15 +16,18 @@ public class Account {
     @GeneratedValue(strategy= GenerationType.AUTO)
     private Long id;
 
-    @Column(name = "FORE_NAME", length=50, nullable=false, unique=false)
+    @NotNull
+    @Column(name = "FORE_NAME", length=50)
     private String foreName;
-    @Column(name = "SUR_NAME", length=50, nullable=false, unique=false)
+    @NotNull
+    @Column(name = "SUR_NAME", length=50)
     private String surName;
-    @Column(name = "BIRTH_DATE", nullable=false, unique=false)
+    @NotNull
+    @Column(name = "BIRTH_DATE")
     private LocalDate birthDate;
-    // TODO use updatable=false on createdAt timestamp - remove it from below true is the default
+    // TODO use updatable=false on createdAt timestamp
     @Enumerated(EnumType.STRING)
-    @Column(name="CURRENCY_CODE", nullable = true, updatable = true)
+    @Column(name="CURRENCY_CODE")
     private CurrencyCode currencyCode;
     @Transient
     private Integer age;
