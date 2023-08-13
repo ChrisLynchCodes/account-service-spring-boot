@@ -3,32 +3,40 @@ package com.chris.accountservice.dao;
 import com.chris.accountservice.enums.CurrencyCode;
 import com.chris.accountservice.exceptions.AccountNotFoundException;
 import com.chris.accountservice.models.Account;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.util.Assert;
 
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+import javax.transaction.Transactional;
 import java.time.LocalDate;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
+
 @SpringBootTest
 @ActiveProfiles("test")
+@Transactional
 public class AccountDaoTest {
 
     @Autowired
     private AccountDao accountDao;
-
-    private Account testAccount;
+    @PersistenceContext
+    private EntityManager entityManager;
 
     @Test
     void given10AccountsInDb_whenGetAccountsIsCalled_thenReturnAListOfAccounts() {
         List<Account> accounts = accountDao.getAccounts();
-        Assert.isTrue(10 == accounts.size());
+        assertThat(accounts).hasSize(10);
     }
-
     @Test
     void givenValidAccounts_whenBatchSaveIsCalled_thenReturnCountOfInserted() {
         Set<Account> accounts = new HashSet<>();
@@ -44,18 +52,75 @@ public class AccountDaoTest {
     }
 
     @Test
-    void givenAValidAccount_whenUpdateIsCalled_thenTheUpdatedEntityIsReturned() throws AccountNotFoundException {
-        Account updates = new Account("test", "test", LocalDate.now(), CurrencyCode.AUD);
-        updates.setId(1L);
-        Account updated = accountDao.update(updates);
-        Assert.notNull(updated);
-        Assert.isTrue(updates.equals(updated));
+    void givenAnEmptyCollection_whenBatchSaveIsCalled_thenReturnZero() {
+        int savedCount = accountDao.batchSave((Collections.EMPTY_SET));
+        assertThat(savedCount).isZero();
+
     }
 
     @Test
-    void givenANullValue_whenUpdateIsCalled_thenThrowException() throws AccountNotFoundException {
+    void givenANullValue_whenBatchSaveIsCalled_thenReturnZero() {
+        int savedCount = accountDao.batchSave((null));
+        assertThat(savedCount).isZero();
+    }
 
-        //        Account updated = accountDao.update(null);
+
+    @Test
+    void givenAValidAccount_whenUpdateIsCalled_thenTheUpdatedEntityIsReturned() {
+        Account updates = new Account("test", "test", LocalDate.now(), CurrencyCode.AUD);
+        updates.setId(1L);
+        Account updated = accountDao.update(updates);
+        assertThat(updated).isNotNull();
+        assertThat(updates).isEqualTo(updated);
+    }
+
+    @Test
+    void givenANullValue_whenUpdateIsCalled_thenThrowException() {
+        Assertions.assertThrows(IllegalArgumentException.class, () -> accountDao.update(null));
+    }
+
+    @Test
+    void givenAnEntityNotInDb_whenUpdateIsCalled_thenPersistAndReturn() {
+        Account updates = new Account("test", "test", LocalDate.now(), CurrencyCode.AUD);
+        updates.setId(12345L);
+        Account updated = accountDao.update(updates);
+        assertThat(updated).isNotNull();
+        assertThat(updates.getForeName()).isEqualTo(updated.getForeName());
+        assertThat(updates.getSurName()).isEqualTo(updated.getSurName());
+        assertThat(updates.getBirthDate()).isEqualTo(updated.getBirthDate());
+        assertThat(updates.getCurrencyCode()).isEqualTo(updated.getCurrencyCode());
+    }
+
+    @Test
+    void givenAValidId_whenDeleteIsCalled_thenEntityIsRemoved() throws AccountNotFoundException {
+        Long id = 1L;
+        accountDao.delete(id);
+        assertThat(entityManager.find(Account.class, id)).isNull();
+    }
+
+    @Test
+    void givenANullValue_whenDeleteIsCalled_thenThrowIllegalArgumentException() throws IllegalArgumentException {
+        Assertions.assertThrows(IllegalArgumentException.class, () -> accountDao.delete(null));
+    }
+
+    @Test
+    void givenAnIdNotInDb_whenDeleteIsCalled_thenThrowAccountNotFoundException() {
+        Assertions.assertThrows(AccountNotFoundException.class, () -> accountDao.delete(123L));
+    }
+
+    @Test
+    void whenGetAccountInfoIsCalled() {
+
+    }
+
+    @Test
+    void whenGetBatchDeleteIsCalled() {
+
+    }
+
+    @Test
+    void whenGetBatchUpdateIsCalled() {
+        // TODO can this replace batch insert with this - go back and do with tutorial to replace in endpoints etc
 
     }
 
