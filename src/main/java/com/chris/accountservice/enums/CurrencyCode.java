@@ -5,7 +5,13 @@ public enum CurrencyCode {
     EUR("Euro"),
     GBP("British Pound"),
     JPY("Japanese Yen"),
-    AUD("Australian Dollar");
+    AUD("Australian Dollar"),
+    CAD("Canadian Dollar"),
+    CHF("Swiss Franc"),
+    INR("Indian Rupee "),
+    SGD("Singapore Dollar"),
+    HKD("Hong Kong Dollar");
+
     // TODO Add more currency codes here...
 
     // Constructor to associate a description with each currency
