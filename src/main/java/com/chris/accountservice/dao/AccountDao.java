@@ -13,11 +13,15 @@ public interface AccountDao {
     List<Account> getAccounts();
 
     Optional<Account> findById(Long id);
-    Account save(Account account);
-    Account update(Account account) throws AccountNotFoundException;
+
+    Account save(Account account) throws IllegalArgumentException;
+
+    Account update(Account account) throws IllegalArgumentException;
     void delete(Long id) throws AccountNotFoundException;
 
     int batchSave(Set<Account> accounts);
+
+    int batchUpdate(Set<Account> accounts);
 
     int batchDelete(Set<Long> accountIdMap);
 

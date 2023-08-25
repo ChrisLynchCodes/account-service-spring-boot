@@ -19,8 +19,8 @@ public class AccountDaoImpl implements AccountDao {
     @PersistenceContext
     private EntityManager entityManager;
 
-    @Value("${spring.jpa.properties.hibernate.jdbc.batch_size}")
-    private final int batchSize = 25;
+    @Value("${spring.jpa.properties.hibernate.jdbc.batch_size:25}")
+    private int batchSize;
     @Override
     public List<Account> getAccounts() {
         return entityManager.createQuery("SELECT a FROM Account a", Account.class).getResultList();
@@ -32,7 +32,7 @@ public class AccountDaoImpl implements AccountDao {
     }
 
     @Override
-    public Account save(Account account) {
+    public Account save(Account account) throws IllegalArgumentException {
         if (account == null) {
             throw new IllegalArgumentException("Account cannot be null");
         }
@@ -42,7 +42,7 @@ public class AccountDaoImpl implements AccountDao {
     }
 
     @Override
-    public Account update(Account account) throws AccountNotFoundException {
+    public Account update(Account account) throws IllegalArgumentException {
         if (account == null) {
             throw new IllegalArgumentException("Account cannot be null");
         }
@@ -50,7 +50,11 @@ public class AccountDaoImpl implements AccountDao {
     }
 
     @Override
-    public void delete(Long id) throws AccountNotFoundException {
+    public void delete(Long id) throws AccountNotFoundException, IllegalArgumentException {
+        if (id == null) {
+            throw new IllegalArgumentException("Id cannot be null");
+        }
+
         Account account = entityManager.find(Account.class, id);
         if (account != null) {
             entityManager.remove(account);
@@ -63,23 +67,29 @@ public class AccountDaoImpl implements AccountDao {
     @Override
     @Transactional
     public int batchSave(Set<Account> accounts) {
-        Iterator<Account> iterator = accounts.iterator();
+
         int persistedCount = 0;
-
-        while (iterator.hasNext()) {
-            Set<Account> batch = new HashSet<>();
-            for (int i = 0; i < batchSize && iterator.hasNext(); i++) {
-                batch.add(iterator.next());
+        if (accounts != null) {
+            Iterator<Account> iterator = accounts.iterator();
+            while (iterator.hasNext()) {
+                Set<Account> batch = new HashSet<>();
+                for (int i = 0; i < batchSize && iterator.hasNext(); i++) {
+                    batch.add(iterator.next());
+                }
+                for (Account account : batch) {
+                    entityManager.persist(account);
+                }
+                persistedCount += batch.size();
+                entityManager.flush();
+                entityManager.clear();
             }
-            for (Account account : batch) {
-                entityManager.persist(account);
-            }
-            persistedCount += batch.size();
-            entityManager.flush();
-            entityManager.clear();
-
         }
         return persistedCount;
+    }
+
+    @Override
+    public int batchUpdate(Set<Account> accounts) {
+        return 0;
     }
 
     @Override
@@ -90,7 +100,7 @@ public class AccountDaoImpl implements AccountDao {
     @Override
     public List<AccountInfoDto> getAccountInfo() {
 
-        return (List<AccountInfoDto>) entityManager.createNamedQuery(Account.ACCOUNT_INFO).getResultList();
+        return entityManager.createNamedQuery(Account.ACCOUNT_INFO).getResultList();
     }
 
 }

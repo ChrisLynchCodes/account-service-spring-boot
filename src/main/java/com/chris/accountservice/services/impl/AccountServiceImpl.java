@@ -24,13 +24,21 @@ public class AccountServiceImpl implements AccountService {
     @Autowired
     private AccountLogDao accountLogDao;
 
+    private void longProcess() {
+        try {
+            Thread.sleep(10000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+            Thread.currentThread().interrupt();
+        }
+    }
     @Override
     public Set<Account> findAll() {
         List<Account> accounts = accountDao.getAccounts();
         if (!accounts.isEmpty()) {
             return new HashSet<>(accounts);
         } else {
-            return Collections.EMPTY_SET;
+            return Collections.emptySet();
         }
     }
 
