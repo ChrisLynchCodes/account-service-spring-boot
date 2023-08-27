@@ -1,5 +1,6 @@
 package com.chris.accountservice.services.impl;
 
+import com.chris.accountservice.controllers.AccountController;
 import com.chris.accountservice.dao.AccountDao;
 import com.chris.accountservice.dao.AccountLogDao;
 import com.chris.accountservice.exceptions.AccountNotFoundException;
@@ -7,6 +8,8 @@ import com.chris.accountservice.models.Account;
 import com.chris.accountservice.models.AccountInfoDto;
 import com.chris.accountservice.models.AccountLog;
 import com.chris.accountservice.services.AccountService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -23,6 +26,7 @@ public class AccountServiceImpl implements AccountService {
     private AccountDao accountDao;
     @Autowired
     private AccountLogDao accountLogDao;
+    private static final Logger logger = LoggerFactory.getLogger(AccountController.class);
 
     private void longProcess() {
         try {
@@ -42,10 +46,8 @@ public class AccountServiceImpl implements AccountService {
         }
     }
 
-
     @Override
     public Optional<Account> findById(Long id) {
-
         return id == null ? Optional.empty() : accountDao.findById(id);
     }
 

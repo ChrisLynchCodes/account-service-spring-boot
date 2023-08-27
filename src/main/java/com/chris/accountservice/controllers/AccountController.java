@@ -58,10 +58,11 @@ public class AccountController {
 
     @PutMapping("/{accountId}")
     public ResponseEntity<Account> updateAccount(@PathVariable Long accountId, @Valid @RequestBody Account updatedAccount) throws AccountNotFoundException {
-        logger.info("Updating account with id: {}", accountId);
+
         Optional<Account> accountOptional = accountService.findById(accountId);
 
         if (accountOptional.isPresent()) {
+            logger.info("Updating account {}", accountOptional.get());
             Account account = accountOptional.get();
             account.setForeName(updatedAccount.getForeName());
             account.setSurName(updatedAccount.getSurName());
