@@ -30,6 +30,14 @@ public class AccountController {
     public ResponseEntity<Set<Account>> getAccounts(HttpServletRequest request) {
         Set<Account> accounts = accountService.findAll();
         logger.info("Returned {} accounts", accounts.size());
+        logger.error("IP address: {}", request.getRemoteAddr());
+        logger.error("User agent: {}", request.getHeader("User-Agent"));
+        logger.error("Request URL: {}", request.getRequestURL());
+        logger.error("Request method: {}", request.getMethod());
+        logger.error("Request URI: {}", request.getRequestURI());
+        logger.error("Request query string: {}", request.getQueryString());
+        logger.error(" ");
+
         return ResponseEntity.ok(accounts);
     }
 
@@ -50,10 +58,13 @@ public class AccountController {
     }
 
     @PostMapping
-    public ResponseEntity<String> createAccount(@Valid @RequestBody Account account) {
+    public ResponseEntity<Account> createAccount(@Valid @RequestBody Account account) {
+        // TODO map a account dto to a account model in service layer
         accountService.save(account);
-        logger.info("Account created successfully: {}", account);
-        return ResponseEntity.status(HttpStatus.CREATED).body("Account created successfully " + account);
+        return ResponseEntity.status(HttpStatus.CREATED).body(account);
+
+
+
     }
 
     @PutMapping("/{accountId}")
@@ -86,7 +97,7 @@ public class AccountController {
             logger.info("Deleting account with id: {}", accountId);
             accountService.delete(accountId);
             return ResponseEntity.ok("Account deleted successfully");
-        } catch (AccountNotFoundException e) {
+        } catch (Exception e) {
             logger.error("Account not found", e);
             return ResponseEntity.notFound().build();
         }

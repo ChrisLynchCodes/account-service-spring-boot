@@ -1,7 +1,6 @@
 package com.chris.accountservice.dao.impl;
 
 import com.chris.accountservice.dao.AccountDao;
-import com.chris.accountservice.exceptions.AccountNotFoundException;
 import com.chris.accountservice.models.Account;
 import com.chris.accountservice.models.AccountInfoDto;
 import org.springframework.beans.factory.annotation.Value;
@@ -19,22 +18,24 @@ public class AccountDaoImpl implements AccountDao {
     @PersistenceContext
     private EntityManager entityManager;
 
+
     @Value("${spring.jpa.properties.hibernate.jdbc.batch_size:25}")
     private int batchSize;
+
     @Override
-    public List<Account> getAccounts() {
+    public List<Account> get() {
         return entityManager.createQuery("SELECT a FROM Account a", Account.class).getResultList();
     }
 
     @Override
-    public Optional<Account> findById(Long id) {
+    public Optional<Account> getById(Long id) {
         return Optional.ofNullable(entityManager.find(Account.class, id));
     }
 
     @Override
     public Account save(Account account) throws IllegalArgumentException {
-        if (account == null) {
-            throw new IllegalArgumentException("Account cannot be null");
+        if (null == account) {
+            throw new IllegalArgumentException("account cannot be null");
         }
         entityManager.persist(account);
         entityManager.flush();
@@ -49,18 +50,18 @@ public class AccountDaoImpl implements AccountDao {
         return entityManager.merge(account);
     }
 
-    @Override
-    public void delete(Long id) throws AccountNotFoundException, IllegalArgumentException {
-        if (id == null) {
-            throw new IllegalArgumentException("Id cannot be null");
-        }
 
-        Account account = entityManager.find(Account.class, id);
-        if (account != null) {
-            entityManager.remove(account);
-        } else {
-            throw new AccountNotFoundException(id);
+    @Override
+    public int delete(Long id) throws IllegalArgumentException {
+        if (null == id) {
+            return 0;
         }
+        Account account = entityManager.find(Account.class, id);
+        if (account == null) {
+            return 0;
+        }
+        entityManager.remove(account);
+        return 1;
 
     }
 
@@ -102,5 +103,6 @@ public class AccountDaoImpl implements AccountDao {
 
         return entityManager.createNamedQuery(Account.ACCOUNT_INFO).getResultList();
     }
+
 
 }
